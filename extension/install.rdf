@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>{68408e7d-1c6c-40e1-ba9a-e6db2bfb9b8d}</em:id>
+    <em:type>2</em:type>
+    <em:name>DarkWDec</em:name>
+    <em:version>0.2</em:version>
+    <em:description>Enable dark theme for window decorations under GNOME Shell.</em:description>
+    <em:homepageURL>https://github.com/seleznev/darkwdec</em:homepageURL>
+    <em:creator>Alexander Seleznev</em:creator>
+
+    <em:bootstrap>true</em:bootstrap>
+
+    <em:targetPlatform>Linux</em:targetPlatform>
+
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+        <em:minVersion>24.0</em:minVersion>
+        <em:maxVersion>33.0a1</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+
+  </Description>
+</RDF>
