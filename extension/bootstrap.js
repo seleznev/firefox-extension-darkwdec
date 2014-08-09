@@ -14,6 +14,7 @@ function include(path) {
     Services.scriptloader.loadSubScript(uri.spec, this);
 };
 
+include("include/DefaultPrefs.js");
 include("include/X11.js");
 include("include/Gdk.js");
 
@@ -21,7 +22,10 @@ const ELEMENTS = ["main-window"];
 const ATTRIBUTE = {name: "darkwdec", value: "true"};
 
 var DarkWDec = {
+    PREF_BRANCH: "extensions.darkwdec.",
     gtkVersion: 2,
+
+    prefs: null,
 
     init: function() {
         this.gtkVersion = this.getGtkVersion();
@@ -29,14 +33,24 @@ var DarkWDec = {
             this.log("You must have GTK build for usage this extension");
         }
 
+        this._setDefaultPrefs();
+        this.prefs = Cc["@mozilla.org/preferences-service;1"]
+                       .getService(Ci.nsIPrefService)
+                       .getBranch(this.PREF_BRANCH);
+        this.prefs.addObserver("", this, false);
+
         var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
         wm.addListener(this._windowListener);
         var enumerator = wm.getEnumerator("navigator:browser");
         while (enumerator.hasMoreElements()) {
             let window = enumerator.getNext().QueryInterface(Ci.nsIDOMWindow);
-            if (this.setTheme(window, "dark") == 0) {
+            if (this.setWMTheme(window, "dark") == 0) {
                 this.setAttribute(window, ELEMENTS, ATTRIBUTE);
             }
+        }
+
+        if (this.prefs.getBoolPref("prefer_dark_theme")) {
+            this.setGtkTheme("dark");
         }
     },
 
@@ -46,8 +60,13 @@ var DarkWDec = {
         var enumerator = wm.getEnumerator("navigator:browser");
         while (enumerator.hasMoreElements()) {
             let window = enumerator.getNext().QueryInterface(Ci.nsIDOMWindow);
-            this.setTheme(window, "default");
+            this.setWMTheme(window, "default");
             this.removeAttribute(window, ELEMENTS, ATTRIBUTE);
+        }
+
+        this.prefs.removeObserver("", this);
+        if (this.prefs.getBoolPref("prefer_dark_theme")) {
+            this.setGtkTheme("default");
         }
     },
 
@@ -98,7 +117,20 @@ var DarkWDec = {
         }
     },
 
-    setTheme: function(window, theme) { // default/dark
+    setGtkTheme: function(variant="dark") { // default/dark
+        if (this.gtkVersion != 3) {
+            return;
+        }
+
+        if (variant == "dark") {
+            this.log("Enable dark theme variant");
+        }
+        else {
+            this.log("Disable dark theme variant");
+        }
+    },
+
+    setWMTheme: function(window, theme) { // default/dark
         try {
             var x11 = new X11;
             var gdk = new Gdk(this.gtkVersion, x11);
@@ -157,13 +189,45 @@ var DarkWDec = {
             var window = aWindow.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
             window.addEventListener("load", function onLoad() {
                 window.removeEventListener("load", onLoad, false);
-                if (DarkWDec.setTheme(window, "dark") == 0) {
+                if (DarkWDec.setWMTheme(window, "dark") == 0) {
                     DarkWDec.setAttribute(window, ELEMENTS, ATTRIBUTE);
                 }
             }, false);
         },
         onCloseWindow: function(aWindow) {},
         onWindowTitleChange: function(aWindow, aTitle) {}
+    },
+
+    /* ::::: Preferences ::::: */
+
+    _setDefaultPrefs: function() {
+        var branch = Services.prefs.getDefaultBranch(this.PREF_BRANCH);
+        for (let [key, val] in Iterator(DefaultPrefs)) {
+            switch (typeof val) {
+                case "boolean":
+                    branch.setBoolPref(key, val);
+                    break;
+                case "number":
+                    branch.setIntPref(key, val);
+                    break;
+                case "string":
+                    branch.setCharPref(key, val);
+                    break;
+            }
+        }
+    },
+
+    observe: function(subject, topic, data) {
+        if (topic != "nsPref:changed")
+            return;
+
+        switch(data) {
+            case "prefer_dark_theme":
+                let value = this.prefs.getBoolPref("prefer_dark_theme");
+                this.log("key \"" + data + "\" has been changed to \"" + value + "\"");
+                this.setGtkTheme(value ? "dark" : "default");
+                break;
+        }
     },
 }
 
