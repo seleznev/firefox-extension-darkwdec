@@ -134,8 +134,7 @@ var DarkWDec = {
         if (theme == "dark") {
             let type = x11.XInternAtom(x11_display, "UTF8_STRING", false);
 
-            let buffer = new ArrayBuffer(4);
-            let data = new Uint32Array(buffer);
+            let data = new ctypes.ArrayType(ctypes.uint32_t)(1);
             data[0] = 1802658148; // 1802658148 == 6b726164 == dark
             let x11_data = ctypes.uint32_t.ptr(data);
 
