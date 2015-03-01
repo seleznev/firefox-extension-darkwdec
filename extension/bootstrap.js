@@ -16,7 +16,9 @@ function include(path) {
 
 include("include/DefaultPrefs.js");
 include("include/X11.js");
+include("include/GObject.js");
 include("include/Gdk.js");
+include("include/Gtk.js");
 
 const ELEMENTS = ["main-window"];
 const ATTRIBUTE = {name: "darkwdec", value: "true"};
@@ -39,6 +41,10 @@ var DarkWDec = {
                        .getBranch(this.PREF_BRANCH);
         this.prefs.addObserver("", this, false);
 
+        if (this.prefs.getBoolPref("prefer_dark_theme")) {
+            this.setGtkTheme("dark");
+        }
+
         var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
         wm.addListener(this._windowListener);
         var enumerator = wm.getEnumerator("navigator:browser");
@@ -48,13 +54,13 @@ var DarkWDec = {
                 this.setAttribute(window, ELEMENTS, ATTRIBUTE);
             }
         }
-
-        if (this.prefs.getBoolPref("prefer_dark_theme")) {
-            this.setGtkTheme("dark");
-        }
     },
 
     uninit: function() {
+        if (this.prefs.getBoolPref("prefer_dark_theme")) {
+            this.setGtkTheme("default");
+        }
+
         var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
         wm.removeListener(this._windowListener);
         var enumerator = wm.getEnumerator("navigator:browser");
@@ -65,9 +71,6 @@ var DarkWDec = {
         }
 
         this.prefs.removeObserver("", this);
-        if (this.prefs.getBoolPref("prefer_dark_theme")) {
-            this.setGtkTheme("default");
-        }
     },
 
     /* ::::: ::::: */
@@ -122,11 +125,28 @@ var DarkWDec = {
             return;
         }
 
+        try {
+            var gobject = new GObject;
+            var gtk = new Gtk;
+        } catch(e) {
+            this.log(e);
+            return;
+        }
+
         if (variant == "dark") {
             this.log("Enable dark theme variant");
+            /*
+            g_object_set (G_OBJECT (gtk_settings),
+                          "gtk-application-prefer-dark-theme", TRUE,
+                          NULL);
+            */
+            var settings = gtk.Settings.get_default();
+            gobject.set(settings, "gtk-application-prefer-dark-theme", true);
         }
         else {
             this.log("Disable dark theme variant");
+            var settings = gtk.Settings.get_default();
+            gobject.set(settings, "gtk-application-prefer-dark-theme", false);
         }
     },
 
