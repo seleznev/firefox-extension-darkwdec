@@ -7,10 +7,10 @@
     <em:id>{68408e7d-1c6c-40e1-ba9a-e6db2bfb9b8d}</em:id>
     <em:type>2</em:type>
     <em:name>DarkWDec</em:name>
-    <em:version>0.2</em:version>
+    <em:version>0.3</em:version>
     <em:description>Enable dark theme for window decorations under GNOME Shell.</em:description>
     <em:homepageURL>https://github.com/seleznev/darkwdec</em:homepageURL>
-    <em:creator>Alexander Seleznev</em:creator>
+    <em:creator>Aleksandr Seleznev</em:creator>
 
     <em:bootstrap>true</em:bootstrap>
 
@@ -19,8 +19,8 @@
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-        <em:minVersion>24.0</em:minVersion>
-        <em:maxVersion>33.0a1</em:maxVersion>
+        <em:minVersion>31.0</em:minVersion>
+        <em:maxVersion>39.0a1</em:maxVersion>
       </Description>
     </em:targetApplication>
 
